@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>智能体 · 统一后台</title>
+  <style>
+    :root {
+      --bg: #0c0f14;
+      --card: #161b22;
+      --border: #30363d;
+      --text: #e6edf3;
+      --muted: #8b949e;
+      --accent: #3fb950;
+      --warn: #d29922;
+      --new: rgba(63, 185, 80, 0.15);
+      --tab: #21262d;
+      --tab-active: #388bfd;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    header.top {
+      padding: 0.85rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+      background: var(--card);
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.75rem 1.25rem;
+    }
+    header.top h1 { font-size: 1.1rem; margin: 0; font-weight: 600; }
+    header.top .links a {
+      color: #58a6ff;
+      text-decoration: none;
+      margin-right: 1rem;
+      font-size: 0.88rem;
+    }
+    header.top .links a:hover { text-decoration: underline; }
+    .token-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.5rem;
+      margin-left: auto;
+    }
+    .token-row label { font-size: 0.75rem; color: var(--muted); }
+    .token-row input {
+      padding: 0.35rem 0.5rem;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: #0d1117;
+      color: var(--text);
+      width: 180px;
+    }
+    .token-row button {
+      padding: 0.35rem 0.65rem;
+      border-radius: 6px;
+      border: none;
+      background: #238636;
+      color: #fff;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 0.8rem;
+    }
+    .token-row button.outline {
+      background: #21262d;
+      border: 1px solid var(--border);
+    }
+    nav.tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.25rem;
+      padding: 0.5rem 1rem;
+      background: #0d1117;
+      border-bottom: 1px solid var(--border);
+    }
+    nav.tabs button {
+      padding: 0.45rem 0.9rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--tab);
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 0.85rem;
+    }
+    nav.tabs button.active {
+      background: rgba(56, 139, 253, 0.15);
+      border-color: var(--tab-active);
+      color: var(--text);
+    }
+    main {
+      flex: 1;
+      padding: 1rem 1.25rem 2rem;
+      max-width: 1200px;
+      width: 100%;
+      margin: 0 auto;
+    }
+    section.panel { display: none; }
+    section.panel.active { display: block; }
+    .sub { color: var(--muted); font-size: 0.85rem; margin: 0 0 1rem; }
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 0.75rem;
+      margin-bottom: 1.25rem;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.85rem 1rem;
+    }
+    .card h3 { margin: 0 0 0.35rem; font-size: 0.95rem; }
+    .card p { margin: 0; font-size: 0.8rem; color: var(--muted); }
+    .card a { color: #58a6ff; font-size: 0.88rem; }
+    .bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      align-items: center;
+      margin-bottom: 1rem;
+      padding: 0.65rem 0.85rem;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+    .pill {
+      display: inline-block;
+      padding: 0.2rem 0.55rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      background: #21262d;
+      color: var(--muted);
+    }
+    .pill.live { background: rgba(63, 185, 80, 0.2); color: var(--accent); }
+    #alert {
+      display: none;
+      padding: 0.75rem 1rem;
+      margin-bottom: 1rem;
+      border-radius: 8px;
+      background: rgba(210, 153, 34, 0.15);
+      border: 1px solid var(--warn);
+      color: #e3b341;
+      font-weight: 600;
+    }
+    #alert.show { display: block; }
+    table.tickets {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    table.tickets th, table.tickets td {
+      padding: 0.5rem 0.6rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+    table.tickets th { background: #21262d; color: var(--muted); }
+    tr.new td { background: var(--new); }
+    .id { font-weight: 700; color: #58a6ff; }
+    .detail { max-width: 400px; white-space: pre-wrap; word-break: break-word; }
+    .tool-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem;
+      margin-bottom: 0.75rem;
+    }
+    .tool-card h4 { margin: 0 0 0.35rem; color: #58a6ff; font-size: 0.95rem; }
+    .tool-card .meta { font-size: 0.78rem; color: var(--muted); margin-bottom: 0.5rem; }
+    .tool-card pre {
+      margin: 0.35rem 0 0;
+      padding: 0.5rem;
+      background: #0d1117;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      overflow-x: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .tool-card ul { margin: 0.35rem 0 0; padding-left: 1.2rem; font-size: 0.82rem; color: #c9d1d9; }
+    .api-line {
+      font-family: ui-monospace, monospace;
+      font-size: 0.78rem;
+      padding: 0.45rem 0.55rem;
+      background: #0d1117;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      margin-bottom: 0.35rem;
+      word-break: break-all;
+    }
+    .api-line a { color: #58a6ff; }
+    #errTickets, #errTools, #errMeta, #errFt { color: #f85149; font-size: 0.85rem; margin-top: 0.5rem; }
+    #statusTickets { font-size: 0.78rem; color: var(--muted); margin-top: 0.35rem; }
+    button.small {
+      padding: 0.35rem 0.65rem;
+      font-size: 0.8rem;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: #21262d;
+      color: var(--text);
+      cursor: pointer;
+    }
+    button.small.primary { background: #238636; border-color: #238636; }
+    .json-preview {
+      max-height: 240px;
+      overflow: auto;
+      font-size: 0.72rem;
+      padding: 0.5rem;
+      background: #0d1117;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+  <header class="top">
+    <h1>智能体 · 统一后台</h1>
+    <div class="links">
+      <a href="/" target="_blank" rel="noopener">打开客服页（用户端）</a>
+      <a href="/health" target="_blank" rel="noopener">健康检查 /health</a>
+    </div>
+    <div class="token-row">
+      <label for="token">ADMIN_TOKEN</label>
+      <input type="password" id="token" placeholder="与 .env 一致，未设可空" autocomplete="off" />
+      <button type="button" id="saveToken">保存</button>
+      <button type="button" class="outline" id="reloadApis">刷新当前页数据</button>
+    </div>
+  </header>
+
+  <nav class="tabs" role="tablist">
+    <button type="button" class="active" data-tab="overview">概览</button>
+    <button type="button" data-tab="tickets">工单</button>
+    <button type="button" data-tab="tools">工具与边界</button>
+    <button type="button" data-tab="apis">管理接口</button>
+    <button type="button" data-tab="finetune">微调数据</button>
+  </nav>
+
+  <main>
+    <section id="panel-overview" class="panel active">
+      <p class="sub">同一端口下的入口：用户聊天在首页，运营与开发在本后台。</p>
+      <div class="cards">
+        <div class="card">
+          <h3>客服对话</h3>
+          <p>访客使用的聊天窗口</p>
+          <a href="/" target="_blank">http://本机:8000/</a>
+        </div>
+        <div class="card">
+          <h3>工单监控</h3>
+          <p>轮询 SQLite 中的 tickets</p>
+          <a href="#" id="goTickets">切到「工单」标签 →</a>
+        </div>
+        <div class="card">
+          <h3>工具清单</h3>
+          <p>名称、参数、不能做什么</p>
+          <a href="#" id="goTools">切到「工具与边界」→</a>
+        </div>
+        <div class="card">
+          <h3>接口与样本</h3>
+          <p>Bruno / 脚本对接；JSONL 导出</p>
+          <a href="#" id="goApis">切到「管理接口」→</a>
+        </div>
+      </div>
+      <p class="sub">提示：生产环境请设置 <code>ADMIN_TOKEN</code>，勿把带 token 的链接发给外人。</p>
+    </section>
+
+    <section id="panel-tickets" class="panel">
+      <p class="sub">每 2 秒拉取工单列表；发现更大 ID 时顶部黄条提示。</p>
+      <div class="bar">
+        <button type="button" class="small" id="pause">暂停轮询</button>
+        <span class="pill" id="pillState">未连接</span>
+        <span class="pill" id="pillCount">共 0 条</span>
+      </div>
+      <div id="alert"></div>
+      <table class="tickets">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>标题</th>
+            <th>详情</th>
+            <th>状态</th>
+            <th>创建时间</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+      <div id="errTickets"></div>
+      <div id="statusTickets"></div>
+    </section>
+
+    <section id="panel-tools" class="panel">
+      <p class="sub">与 <code>tool_registry.py</code> / <code>tools.py</code> 对齐。进入本标签会自动请求接口；若红字 403，请核对顶部 Token 与服务器 <code>.env</code> 里 <code>ADMIN_TOKEN</code> 是否一致（未设置 ADMIN_TOKEN 时留空即可）。</p>
+      <div class="bar">
+        <button type="button" class="small primary" id="btnToolRegistry">加载工具注册表</button>
+      </div>
+      <div id="toolsMount"></div>
+      <pre class="json-preview" id="toolsRaw" style="display:none;margin-top:0.75rem"></pre>
+      <div id="errTools"></div>
+    </section>
+
+    <section id="panel-apis" class="panel">
+      <p class="sub">来自 <code>GET /admin/api/meta</code>；带 token 的完整 URL 便于复制到 Bruno。</p>
+      <div class="bar">
+        <button type="button" class="small primary" id="btnApiMeta">加载接口说明</button>
+      </div>
+      <div id="metaMount"></div>
+      <div id="errMeta"></div>
+    </section>
+
+    <section id="panel-finetune" class="panel">
+      <p class="sub">样本文件：<code>data/finetune/samples.jsonl</code>。追加需用 POST（可用 PowerShell，见项目说明）。</p>
+      <div class="bar">
+        <button type="button" class="small primary" id="btnFtStats">刷新统计</button>
+        <a class="small" id="dlFt" href="#" target="_blank" style="display:inline-block;padding:0.35rem 0.65rem;border-radius:6px;background:#238636;color:#fff;text-decoration:none;font-size:0.8rem;font-weight:600;">下载 JSONL</a>
+      </div>
+      <div class="card" style="margin-top:0.5rem">
+        <h3>当前统计</h3>
+        <pre id="ftStats" class="json-preview" style="max-height:none">点击「刷新统计」</pre>
+      </div>
+      <div id="errFt"></div>
+    </section>
+  </main>
+
+  <script>
+    const tokenEl = document.getElementById("token");
+    tokenEl.value = localStorage.getItem("admin_token") || "";
+
+    document.getElementById("saveToken").onclick = () => {
+      localStorage.setItem("admin_token", tokenEl.value.trim());
+    };
+
+    function qs() {
+      const t = tokenEl.value.trim();
+      return t ? "?token=" + encodeURIComponent(t) : "";
+    }
+
+    function escapeHtml(s) {
+      if (s == null) return "";
+      const d = document.createElement("div");
+      d.textContent = s;
+      return d.innerHTML;
+    }
+
+    const base = () => window.location.origin;
+
+    async function parseJsonResponse(r) {
+      const text = await r.text();
+      let data = null;
+      try {
+        data = text ? JSON.parse(text) : {};
+      } catch {
+        throw new Error("服务器返回非 JSON（" + r.status + "）：" + text.slice(0, 160));
+      }
+      if (!r.ok) {
+        throw new Error(apiDetailMessage(data, r.status));
+      }
+      return data;
+    }
+
+    function apiDetailMessage(data, status) {
+      if (!data || typeof data !== "object") return "HTTP " + status;
+      const d = data.detail;
+      if (typeof d === "string") return d;
+      if (Array.isArray(d)) return d.map((x) => x.msg || JSON.stringify(x)).join("；");
+      return "HTTP " + status;
+    }
+
+    /** 部分旧内核无 AbortSignal.timeout，直接传会抛错导致点击无反馈 */
+    function fetchOptsTimeout(ms) {
+      if (typeof AbortSignal !== "undefined" && typeof AbortSignal.timeout === "function") {
+        return { signal: AbortSignal.timeout(ms) };
+      }
+      return {};
+    }
+
+    /* ——— Tickets ——— */
+    const tbody = document.getElementById("tbody");
+    const alertEl = document.getElementById("alert");
+    const errTickets = document.getElementById("errTickets");
+    const statusTickets = document.getElementById("statusTickets");
+    const pillState = document.getElementById("pillState");
+    const pillCount = document.getElementById("pillCount");
+    const btnPause = document.getElementById("pause");
+    let lastMaxId = 0;
+    let pollMs = 2000;
+    let timer = null;
+    let paused = false;
+
+    async function tick() {
+      if (paused) return;
+      errTickets.textContent = "";
+      try {
+        const url =
+          "/admin/api/tickets?after_id=0" +
+          (tokenEl.value.trim() ? "&token=" + encodeURIComponent(tokenEl.value.trim()) : "");
+        const r2 = await fetch(url);
+        const data = await parseJsonResponse(r2);
+        if (typeof data.poll_interval_sec === "number") {
+          pollMs = Math.min(Math.max(data.poll_interval_sec, 1), 30) * 1000;
+        }
+        const maxId = data.max_id || 0;
+        const tickets = data.tickets || [];
+        const prevMax = lastMaxId;
+        if (prevMax > 0 && maxId > prevMax) {
+          const n = tickets.filter((x) => x.id > prevMax).length;
+          alertEl.textContent =
+            n > 0
+              ? "有新工单：" + n + " 条（ID 自 " + (prevMax + 1) + " 起至 " + maxId + "）"
+              : "工单表 max_id 已更新：" + prevMax + " → " + maxId;
+          alertEl.classList.add("show");
+          setTimeout(() => alertEl.classList.remove("show"), 8000);
+        }
+        lastMaxId = maxId;
+        tbody.innerHTML = "";
+        if (!tickets.length) {
+          tbody.innerHTML = "<tr><td colspan=\"5\" style=\"color:var(--muted)\">暂无工单</td></tr>";
+        } else {
+          tickets.forEach((row) => {
+            const tr = document.createElement("tr");
+            if (prevMax > 0 && row.id > prevMax) tr.classList.add("new");
+            tr.innerHTML =
+              "<td class=\"id\">#" + row.id + "</td>" +
+              "<td>" + escapeHtml(row.title) + "</td>" +
+              "<td class=\"detail\">" + escapeHtml(row.detail) + "</td>" +
+              "<td>" + escapeHtml(row.status) + "</td>" +
+              "<td>" + escapeHtml(row.created_at || "") + "</td>";
+            tbody.appendChild(tr);
+          });
+        }
+        pillState.textContent = "轮询中 · " + new Date().toLocaleTimeString();
+        pillState.classList.add("live");
+        pillCount.textContent = "共 " + (data.total ?? tickets.length) + " 条";
+        statusTickets.textContent = "上次刷新：" + new Date().toLocaleString() + " · 间隔 " + pollMs / 1000 + "s";
+      } catch (e) {
+        errTickets.textContent = String(e.message || e);
+        pillState.textContent = "出错";
+        pillState.classList.remove("live");
+      }
+    }
+
+    function armTimer() {
+      if (timer) clearInterval(timer);
+      timer = setInterval(tick, pollMs);
+    }
+
+    btnPause.onclick = () => {
+      paused = !paused;
+      btnPause.textContent = paused ? "继续轮询" : "暂停轮询";
+      pillState.textContent = paused ? "已暂停" : "轮询中";
+      if (paused) {
+        clearInterval(timer);
+        timer = null;
+      } else tick().then(armTimer);
+    };
+
+    (async () => {
+      await tick();
+      armTimer();
+    })();
+
+    /* ——— Tools（按钮 id 勿用 loadTools：浏览器会给 window.loadTools=DOM，覆盖函数名） ——— */
+    async function fetchToolRegistry() {
+      const btn = document.getElementById("btnToolRegistry");
+      const mount = document.getElementById("toolsMount");
+      const raw = document.getElementById("toolsRaw");
+      const err = document.getElementById("errTools");
+      err.textContent = "";
+      mount.innerHTML = "<p class=\"sub\">加载中…</p>";
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = "加载中…";
+      }
+      try {
+        const r = await fetch("/admin/api/tools/registry" + qs(), fetchOptsTimeout(20000));
+        const data = await parseJsonResponse(r);
+        raw.style.display = "block";
+        raw.textContent = JSON.stringify(data, null, 2);
+        const tools = data.tools || [];
+        mount.innerHTML = "";
+        if (data.agent_protocol) {
+          const p = document.createElement("p");
+          p.className = "sub";
+          p.textContent = data.agent_protocol;
+          mount.appendChild(p);
+        }
+        tools.forEach((t) => {
+          const div = document.createElement("div");
+          div.className = "tool-card";
+          const params = JSON.stringify(t.parameters || {}, null, 2);
+          const bounds = (t.boundaries || []).map((b) => "<li>" + escapeHtml(b) + "</li>").join("");
+          div.innerHTML =
+            "<h4>" + escapeHtml(t.name) + " <span style=\"color:var(--muted);font-weight:400;font-size:0.8rem\">" + escapeHtml(t.kind || "") + "</span></h4>" +
+            "<div class=\"meta\">数据范围：" + escapeHtml(t.data_scope || "") + "</div>" +
+            "<div>" + escapeHtml(t.description || "") + "</div>" +
+            "<div style=\"margin-top:0.5rem;font-size:0.78rem;color:var(--muted)\">参数 schema</div>" +
+            "<pre>" + escapeHtml(params) + "</pre>" +
+            (bounds ? "<div style=\"margin-top:0.5rem;font-size:0.78rem;color:var(--muted)\">边界</div><ul>" + bounds + "</ul>" : "");
+          mount.appendChild(div);
+        });
+      } catch (e) {
+        const msg = String(e.message || e);
+        mount.innerHTML =
+          "<p class=\"sub\" style=\"color:#f85149;font-weight:600;margin:0\">加载失败：" +
+          escapeHtml(msg) +
+          "</p><p class=\"sub\" style=\"margin:0.5rem 0 0\">请确认用浏览器打开的是 <strong>http://本机:端口/admin</strong>（不要双击打开本地 html 文件）；并按 F12 看 Network 里是否有 <code>/admin/api/tools/registry</code>。</p>";
+        err.textContent = msg;
+        err.scrollIntoView({ block: "nearest" });
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = "加载工具注册表";
+        }
+      }
+    }
+    (function bindToolRegistry() {
+      const el = document.getElementById("btnToolRegistry");
+      if (!el) return;
+      el.addEventListener("click", (e) => {
+        e.preventDefault();
+        fetchToolRegistry();
+      });
+    })();
+
+    /* ——— Meta APIs ——— */
+    async function fetchApiMeta() {
+      const btn = document.getElementById("btnApiMeta");
+      const mount = document.getElementById("metaMount");
+      const err = document.getElementById("errMeta");
+      err.textContent = "";
+      mount.innerHTML = "<p class=\"sub\">加载中…</p>";
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = "加载中…";
+      }
+      try {
+        const r = await fetch("/admin/api/meta" + qs(), fetchOptsTimeout(20000));
+        const data = await parseJsonResponse(r);
+        const b = base();
+        const tok = tokenEl.value.trim();
+        let html = "<p class=\"sub\">" + escapeHtml(data.chat_protocol || "") + "</p>";
+        html += "<h3 style=\"font-size:0.9rem;margin:1rem 0 0.5rem\">页面</h3>";
+        (data.admin_pages || []).forEach((p) => {
+          html += "<div class=\"api-line\"><a href=\"" + b + p + "\" target=\"_blank\">" + b + p + "</a>（本统一后台）</div>";
+        });
+        html += "<h3 style=\"font-size:0.9rem;margin:1rem 0 0.5rem\">HTTP 接口</h3>";
+        html += "<p class=\"sub\" style=\"margin-top:0\">GET 可点击；POST 需 body，请用 PowerShell / Apifox / Bruno。</p>";
+        (data.admin_api || []).forEach((line) => {
+          const m = line.match(/^(GET|POST)\s+(\S+)/i);
+          if (!m) {
+            html += "<div class=\"api-line\">" + escapeHtml(line) + "</div>";
+            return;
+          }
+          const method = m[1].toUpperCase();
+          const pathOnly = m[2];
+          if (method === "GET") {
+            const sep = pathOnly.includes("?") ? "&" : "?";
+            const href = b + pathOnly + (tok ? sep + "token=" + encodeURIComponent(tok) : "");
+            html += "<div class=\"api-line\"><strong>GET</strong> <a href=\"" + href + "\" target=\"_blank\">" + escapeHtml(href) + "</a></div>";
+          } else {
+            const hint = b + pathOnly + (tok ? "?token=" + encodeURIComponent(tok) : "");
+            html += "<div class=\"api-line\"><strong>POST</strong> <code>" + escapeHtml(hint) + "</code>（勿用浏览器直接打开）</div>";
+          }
+        });
+        mount.innerHTML = html;
+      } catch (e) {
+        mount.innerHTML = "";
+        err.textContent = String(e.message || e);
+        err.scrollIntoView({ block: "nearest" });
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = "加载接口说明";
+        }
+      }
+    }
+
+    document.getElementById("btnApiMeta").addEventListener("click", (e) => {
+      e.preventDefault();
+      fetchApiMeta();
+    });
+
+    /* ——— Finetune ——— */
+    function updateDlLink() {
+      const a = document.getElementById("dlFt");
+      a.href = base() + "/admin/api/ft/download" + qs();
+    }
+    tokenEl.addEventListener("input", updateDlLink);
+    document.getElementById("saveToken").addEventListener("click", updateDlLink);
+
+    async function refreshFtStats() {
+      const btn = document.getElementById("btnFtStats");
+      const err = document.getElementById("errFt");
+      const pre = document.getElementById("ftStats");
+      err.textContent = "";
+      pre.textContent = "加载中…";
+      updateDlLink();
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = "加载中…";
+      }
+      try {
+        const r = await fetch("/admin/api/ft/stats" + qs(), fetchOptsTimeout(20000));
+        const data = await parseJsonResponse(r);
+        pre.textContent = JSON.stringify(data, null, 2);
+      } catch (e) {
+        pre.textContent = "";
+        err.textContent = String(e.message || e);
+        err.scrollIntoView({ block: "nearest" });
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = "刷新统计";
+        }
+      }
+    }
+
+    document.getElementById("btnFtStats").addEventListener("click", (e) => {
+      e.preventDefault();
+      refreshFtStats();
+    });
+
+    /* ——— Tabs ——— */
+    function showTab(name) {
+      document.querySelectorAll("nav.tabs button").forEach((b) => {
+        b.classList.toggle("active", b.dataset.tab === name);
+      });
+      document.querySelectorAll("main section.panel").forEach((p) => {
+        p.classList.toggle("active", p.id === "panel-" + name);
+      });
+      if (name === "tools") fetchToolRegistry();
+      if (name === "apis") fetchApiMeta();
+      if (name === "finetune") refreshFtStats();
+    }
+
+    document.querySelectorAll("nav.tabs button").forEach((btn) => {
+      btn.setAttribute("type", "button");
+      btn.addEventListener("click", (e) => {
+        e.preventDefault();
+        showTab(btn.dataset.tab);
+      });
+    });
+    document.getElementById("goTickets").onclick = (e) => { e.preventDefault(); showTab("tickets"); };
+    document.getElementById("goTools").onclick = (e) => { e.preventDefault(); showTab("tools"); };
+    document.getElementById("goApis").onclick = (e) => { e.preventDefault(); showTab("apis"); };
+
+    document.getElementById("reloadApis").onclick = () => {
+      const active = document.querySelector("nav.tabs button.active");
+      if (active) {
+        if (active.dataset.tab === "tools") fetchToolRegistry();
+        if (active.dataset.tab === "apis") fetchApiMeta();
+        if (active.dataset.tab === "finetune") refreshFtStats();
+      }
+    };
+
+    updateDlLink();
+    document.getElementById("dlFt").addEventListener("click", (e) => {
+      updateDlLink();
+      if (!document.getElementById("dlFt").getAttribute("href") || document.getElementById("dlFt").getAttribute("href") === "#") {
+        e.preventDefault();
+        document.getElementById("errFt").textContent = "请先设置 Token（若服务器要求）并刷新统计";
+      }
+    });
+  </script>
+</body>
+</html>
