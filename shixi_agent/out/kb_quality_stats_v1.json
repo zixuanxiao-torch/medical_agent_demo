@@ -1,0 +1,16 @@
+{
+  "in_total": 49728,
+  "drop_not_reusable": 20412,
+  "drop_not_question": 4628,
+  "kept_new": 976,
+  "drop_answer_logistics_only": 4194,
+  "drop_answer_too_short": 2461,
+  "drop_answer_has_question": 908,
+  "drop_low_intent_q": 5339,
+  "drop_no_domain_kw": 9381,
+  "drop_all_low_lines": 654,
+  "drop_empty": 21,
+  "dedup_drop": 723,
+  "dedup_replace": 31,
+  "out_total": 976
+}
